@@ -2,10 +2,6 @@ from random import randint
 from itertools import combinations
 from tqdm import tqdm
 
-num_dice = 2
-num_sides_per_die = 6
-success_count = 0
-total_trial_count = 1_000_000
 
 class Die:
     def __init__(self, num_sides=6):
@@ -59,6 +55,10 @@ class Box:
         self.is_shut = len(self.numbers) == 0
         self.box_state_history.append(f"{self}")
 
+    def add_number(self, number):
+        self.numbers.append(number)
+        self.numbers.sort()
+
     def __str__(self):
         rv = "|"
         width = len(str(self.max_number))
@@ -76,32 +76,38 @@ class Box:
             rv += f"{box_state} --- {roll}\n"
         return rv
 
-roll_count_frequency_success = {}
-roll_count_frequency_failure = {}
-for roll_count in range(1, num_dice * num_sides_per_die + 1):
-    roll_count_frequency_success[roll_count] = 0
-    roll_count_frequency_failure[roll_count] = 0
 
+if __name__ == "__main__":
+    num_dice = 2
+    num_sides_per_die = 6
+    success_count = 0
+    total_trial_count = 1_000_000
 
-for i in tqdm(range(total_trial_count)):
-    box = Box(num_dice=num_dice, num_sides_per_die=num_sides_per_die)
-    while not box.is_shut:
-        dice_total = box.roll_dice()
-        # print(box, dice_total)
-        # subsets = box.get_valid_subsets(dice_total=dice_total)
-        # if len(subsets) == 0:
-        #     break
-        first_subset = box.get_first_valid_subset(dice_total=dice_total)
-        if first_subset is None:
-            roll_count_frequency_failure[box.get_roll_count()] += 1
-            break
-        box.remove_numbers(first_subset)
-    else:
-        # print(repr(box))
-        roll_count_frequency_success[box.get_roll_count()] += 1
-        success_count += 1
+    roll_count_frequency_success = {}
+    roll_count_frequency_failure = {}
+    for roll_count in range(1, num_dice * num_sides_per_die + 1):
+        roll_count_frequency_success[roll_count] = 0
+        roll_count_frequency_failure[roll_count] = 0
 
-print(f"({num_dice},{num_sides_per_die}): {success_count} / {total_trial_count} = {100*(1.0 *success_count/total_trial_count):.4f}%")
-for roll_count in range(1, num_dice * num_sides_per_die + 1):
-    print(
-        f"{roll_count}, {roll_count_frequency_success[roll_count]}, {roll_count_frequency_failure[roll_count]}")
+    for i in tqdm(range(total_trial_count)):
+        box = Box(num_dice=num_dice, num_sides_per_die=num_sides_per_die)
+        while not box.is_shut:
+            dice_total = box.roll_dice()
+            # print(box, dice_total)
+            # subsets = box.get_valid_subsets(dice_total=dice_total)
+            # if len(subsets) == 0:
+            #     break
+            first_subset = box.get_first_valid_subset(dice_total=dice_total)
+            if first_subset is None:
+                roll_count_frequency_failure[box.get_roll_count()] += 1
+                break
+            box.remove_numbers(first_subset)
+        else:
+            # print(repr(box))
+            roll_count_frequency_success[box.get_roll_count()] += 1
+            success_count += 1
+
+    print(f"({num_dice},{num_sides_per_die}): {success_count} / {total_trial_count} = {100*(1.0 *success_count/total_trial_count):.4f}%")
+    for roll_count in range(1, num_dice * num_sides_per_die + 1):
+        print(
+            f"{roll_count}, {roll_count_frequency_success[roll_count]}, {roll_count_frequency_failure[roll_count]}")
